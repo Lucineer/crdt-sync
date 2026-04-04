@@ -1,26 +1,71 @@
-# CRDT Sync — State Synchronization for Agent Fleets
+<p align="center">
+  <img src="https://raw.githubusercontent.com/Lucineer/capitaine/master/docs/capitaine-logo.jpg" alt="Capitaine" width="120">
+</p>
 
-> *Conflict-free replicated data types for repo-native agents.*
+<h1 align="center">crdt-sync</h1>
 
-## What It Is
+<p align="center">CRDT-based state synchronization for agent fleets.</p>
 
-CRDT-based state synchronization for fleets of repo-native agents. When multiple agents operate on shared state (documents, knowledge bases, task queues), CRDTs ensure convergence without central coordination.
+<p align="center">
+  <a href="https://github.com/Lucineer/crdt-sync/issues">Issues</a> ·
+  <a href="#the-fleet">The Fleet</a>
+</p>
 
-## Why CRDTs
+---
 
-- **Offline-first**: Agents work without network, sync when connected
-- **Conflict-free**: No merge conflicts — CRDTs resolve automatically
-- **Scalable**: No central bottleneck — agents sync peer-to-peer
-- **Auditable**: Every state change is tracked and reversible
+**Fleet service** · Powered by [Capitaine](https://github.com/Lucineer/capitaine) · [Cocapn](https://github.com/Lucineer/cocapn)
 
-## Integration
+A cocapn fleet service running on Cloudflare Workers.
 
-- Fleet state: shared knowledge bases, task queues, presence
-- Spreadsheet cells: Deckboss cellular agents syncing across instances
-- Document collaboration: Multiple agents editing the same repo
+## Quick Start
 
-## Status
+```bash
+gh repo fork Lucineer/crdt-sync --clone
+cd crdt-sync
+npx wrangler login
+npx wrangler deploy
+```
 
-📝 Concept phase. Based on superinstance/SmartCRDT research.
+## The Fleet
 
-Author: Superinstance
+
+<details>
+<summary><strong>⚓ The Fleet</strong></summary>
+
+**Flagship vessels**
+
+- [cocapn.ai](https://github.com/Lucineer/capitaine)
+- [personallog.ai](https://github.com/Lucineer/personallog-ai)
+- [businesslog.ai](https://github.com/Lucineer/businesslog-ai)
+- [studylog.ai](https://github.com/Lucineer/studylog-ai)
+- [makerlog.ai](https://github.com/Lucineer/makerlog-ai)
+- [playerlog.ai](https://github.com/Lucineer/playerlog-ai)
+- [dmlog.ai](https://github.com/Lucineer/dmlog-ai)
+- [reallog.ai](https://github.com/Lucineer/reallog-ai)
+- [deckboss.ai](https://github.com/Lucineer/deckboss-ai)
+
+**Fleet services**
+
+- [Fleet Catalog](https://github.com/Lucineer/capitaine/blob/master/docs/fleet/FLEET.md)
+- [Git Agent (full)](https://github.com/Lucineer/git-agent)
+- [Cocapn Lite (minimal)](https://github.com/Lucineer/cocapn-lite)
+- [Fleet Orchestrator](https://github.com/Lucineer/fleet-orchestrator)
+- [Dead Reckoning Engine](https://github.com/Lucineer/dead-reckoning-engine)
+- [Dream Engine](https://github.com/Lucineer/dream-engine)
+- [Seed UI (5 layers)](https://github.com/Lucineer/seed-ui)
+
+**For power users**
+
+- [Cocapn Lite (tabula rasa)](https://github.com/Lucineer/cocapn-lite)
+- [Cocapn (core platform)](https://github.com/Lucineer/cocapn)
+- [ZeroClaw (framework)](https://github.com/Lucineer/zeroclaw)
+
+[View all 106 repos →](https://github.com/orgs/Lucineer/repositories)
+[Fleet manifest →](https://github.com/Lucineer/capitaine/blob/master/docs/fleet/FLEET.md)
+
+</details>
+
+
+## License
+
+MIT · Superinstance & Lucineer (DiGennaro et al.)
