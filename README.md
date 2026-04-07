@@ -1,71 +1,72 @@
-# crdt-sync
+# CRDT Sync: Merge Agent Writes Without Coordination
 
-A minimal, conflict-free state synchronization layer for agent fleets, built on CRDT principles. Deploy it yourself to manage shared state across multiple agents without coordination errors.
+You don't need locks, a message broker, or consensus. Post state from any agent, at any time, and it merges.
 
----
-
-## Why this exists
-
-Most agent examples handle a single task. When you scale to multiple agents writing to shared state simultaneously, you encounter race conditions and lost updates. This provides a simple, self-hosted alternative to a complex distributed database that guarantees merge safety.
-
-## Try the Public Sandbox
-
-You can test the merge behavior using a public, open sandbox. **Note: This instance is writable by anyone.**
+Test it: open two terminals and hit the public endpoint simultaneously. It handles concurrent writes.
 
 ```bash
 # Read the current shared state
 curl https://the-fleet.casey-digennaro.workers.dev/state
 
-# Submit a state update (any JSON object)
-curl -X POST -H "Content-Type: application/json" -d '{"agent_7": {"last_checkin": 1735000000}}' https://the-fleet.casey-digennaro.workers.dev/state
+# Submit an update from any agent identifier
+curl -X POST -H "Content-Type: application/json" \
+  -d '{"agent_7": {"last_checkin": 1735000000}}' \
+  https://the-fleet.casey-digennaro.workers.dev/state
 ```
 
 ---
 
+## Why This Exists
+You have independent agents reporting state. Existing sync systems often require extra infrastructure, new protocols, or paid services. This is a minimal, reliable alternative. No tricks.
+
+---
+
 ## Quick Start
+1.  Fork this repository.
+2.  Deploy to Cloudflare Workers: `npx wrangler deploy`.
+3.  Modify the merge logic in `src/crdt.js` for your data structure.
 
-1.  **Fork** this repository to your GitHub account.
-2.  **Deploy** to Cloudflare Workers: `wrangler deploy`
-3.  **Modify** the merge logic in `src/crdt.js` for your data structures.
-
-## What This Provides
-
-*   **Self-hosted**: You deploy and control the runtime and data. No service sign-up.
-*   **No external dependencies**: The core merge logic is standard JavaScript.
-*   **Transparent implementation**: The CRDT logic is concise and readable.
-*   **Fork-first**: This is a starting point you are meant to own and modify.
-
-## Key Features
-
-*   **Automatic Conflict Resolution**: Concurrent writes merge without errors or data loss.
-*   **Standard JavaScript**: No build step or npm packages required.
-*   **Your Infrastructure**: State is stored solely in your Cloudflare KV namespace.
-*   **Simple HTTP API**: `GET /state` to read, `POST /state` with JSON to update.
-*   **Eventual Consistency**: Prioritizes simplicity and reliability over immediate propagation.
-*   **MIT Licensed**: Use for any purpose.
-
-**One Current Limitation**: The default merge logic performs a shallow merge. You will need to extend it for complex, nested object structures to match your specific needs.
+You will have a global state endpoint in under two minutes.
 
 ---
 
-## Adapt It for Your Fleet
-
-This is a base implementation. After forking, you should:
-*   Add authentication for private access.
-*   Implement custom deep-merge logic for your state shape.
-*   Extend with features like validation, snapshots, or real-time subscriptions.
-
-## Contributing
-
-The project follows a fork-first philosophy. Use and modify the code for your needs. If you develop a general improvement, a pull request is welcome but never required.
-
-## License
-
-MIT © Superinstance & Lucineer (DiGennaro et al.)
+## How It Works
+The worker uses a Conflict-Free Replicated Data Type (CRDT) approach via a last-write-wins register for each top-level field. All state is persisted in your Cloudflare KV store. The HTTP API is stateless.
 
 ---
 
-<div align="center">
-  <a href="https://the-fleet.casey-digennaro.workers.dev">The Fleet</a> •
-  <a href="https://cocapn.ai">Cocapn</a>
-</div>
+## Features
+*   **Conflict-Free Merging**: Concurrent writes combine; they do not silently overwrite.
+*   **Zero Dependencies**: ~130 lines of plain JavaScript. No npm, no build step.
+*   **Fork-First Design**: This is a deployable template, not a library you depend on.
+*   **Simple HTTP API**: Works from any client or device.
+*   **State in KV**: Data lives exclusively in your Cloudflare KV namespace.
+*   **MIT Licensed**: Use it for anything.
+
+The default merge is a shallow object merge. You extend it for nested data or domain-specific rules.
+
+---
+
+## One Specific Limitation
+The default merge logic is shallow. If two agents concurrently update different nested properties within the same top-level key, one will overwrite the other. You must implement a deep merge for nested state shapes.
+
+---
+
+## What Makes This Different
+1.  **No Client SDK**: Any HTTP client works. You will never upgrade a client library.
+2.  **Fully Stateless Workers**: No in-memory state. Deploy as many copies as you want.
+3.  **You Own Every Line**: Fork and modify it. You never need to pull upstream updates.
+
+---
+
+## Adapt For Production
+After forking:
+*   Add authentication for private fleets.
+*   Implement deep or custom merge logic for your state shape.
+*   Add snapshotting, validation, or webhook triggers.
+
+---
+
+Superinstance and Lucineer (DiGennaro et al.)
+
+<div style="text-align:center;padding:16px;color:#64748b;font-size:.8rem"><a href="https://the-fleet.casey-digennaro.workers.dev" style="color:#64748b">The Fleet</a> &middot; <a href="https://cocapn.ai" style="color:#64748b">Cocapn</a></div>
