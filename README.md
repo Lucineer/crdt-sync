@@ -1,71 +1,59 @@
-<p align="center">
-  <img src="https://raw.githubusercontent.com/Lucineer/capitaine/master/docs/capitaine-logo.jpg" alt="Capitaine" width="120">
-</p>
+# crdt-sync
 
-<h1 align="center">crdt-sync</h1>
+A minimal, conflict-free state synchronization layer for agent fleets that live in git repositories.
 
-<p align="center">CRDT-based state synchronization for agent fleets.</p>
+## Why This Exists
 
-<p align="center">
-  <a href="https://github.com/Lucineer/crdt-sync/issues">Issues</a> ·
-  <a href="#the-fleet">The Fleet</a>
-</p>
+Agent coordination often requires a shared state. Many solutions introduce a centralized service or a complex hosted platform. This tool provides a simple alternative: a state layer you deploy and control, with state that travels alongside your repository. You manage the code and the data.
 
----
+## What It Does
 
-**Fleet service** · Powered by [Capitaine](https://github.com/Lucineer/capitaine) · [Cocapn](https://github.com/Lucineer/cocapn)
+This is a Cloudflare Worker that implements a Conflict-Free Replicated Data Type (CRDT) service using Cloudflare KV for storage. Agents in a distributed fleet can read and write to a shared state object. Writes from different agents merge automatically.
 
-A cocapn fleet service running on Cloudflare Workers.
+**Key Points:**
+*   **You control it:** Deploy it to your own Cloudflare account. The state never leaves your KV namespace.
+*   **Merge semantics:** Concurrent writes are resolved automatically using last-write-wins semantics for top-level keys.
+*   **Runtime simplicity:** The worker has zero npm dependencies.
+*   **Designed for forks:** The project encourages you to fork and adapt the merge logic for your specific agent behaviors.
+
+**One Limitation:** This is an eventually consistent system. Agents reading state immediately after another agent writes may briefly see an older value until the KV replication propagates.
 
 ## Quick Start
 
+1.  **Fork & clone** this repository.
+2.  Create a KV namespace: `wrangler kv:namespace create "STATE"`.
+3.  Add the generated binding to your `wrangler.toml`.
+4.  Run `wrangler deploy`.
+
+Your sync endpoint is ready. The default merge logic is in `src/crdt.js`.
+
+## Try the Public Endpoint
+
+You can inspect the state object from the public demo fleet:
 ```bash
-gh repo fork Lucineer/crdt-sync --clone
-cd crdt-sync
-npx wrangler login
-npx wrangler deploy
+curl https://the-fleet.casey-digennaro.workers.dev/crdt/state
 ```
 
-## The Fleet
+## For Your Agents
 
+Agents interact via a simple HTTP API:
+*   `GET /crdt/state` – Retrieve the entire state object.
+*   `POST /crdt/state` – Submit a partial state update. The server merges it with the existing state.
 
-<details>
-<summary><strong>⚓ The Fleet</strong></summary>
+## Architecture
 
-**Flagship vessels**
+A single Cloudflare Worker uses its bound KV namespace as the persistent store for a JSON state object. The CRDT merge logic (in `src/crdt.js`) determines how incoming updates are combined with the stored state. You own and can modify this logic.
 
-- [cocapn.ai](https://github.com/Lucineer/capitaine)
-- [personallog.ai](https://github.com/Lucineer/personallog-ai)
-- [businesslog.ai](https://github.com/Lucineer/businesslog-ai)
-- [studylog.ai](https://github.com/Lucineer/studylog-ai)
-- [makerlog.ai](https://github.com/Lucineer/makerlog-ai)
-- [playerlog.ai](https://github.com/Lucineer/playerlog-ai)
-- [dmlog.ai](https://github.com/Lucineer/dmlog-ai)
-- [reallog.ai](https://github.com/Lucineer/reallog-ai)
-- [deckboss.ai](https://github.com/Lucineer/deckboss-ai)
+## Contributing
 
-**Fleet services**
-
-- [Fleet Catalog](https://github.com/Lucineer/capitaine/blob/master/docs/fleet/FLEET.md)
-- [Git Agent (full)](https://github.com/Lucineer/git-agent)
-- [Cocapn Lite (minimal)](https://github.com/Lucineer/cocapn-lite)
-- [Fleet Orchestrator](https://github.com/Lucineer/fleet-orchestrator)
-- [Dead Reckoning Engine](https://github.com/Lucineer/dead-reckoning-engine)
-- [Dream Engine](https://github.com/Lucineer/dream-engine)
-- [Seed UI (5 layers)](https://github.com/Lucineer/seed-ui)
-
-**For power users**
-
-- [Cocapn Lite (tabula rasa)](https://github.com/Lucineer/cocapn-lite)
-- [Cocapn (core platform)](https://github.com/Lucineer/cocapn)
-- [ZeroClaw (framework)](https://github.com/Lucineer/zeroclaw)
-
-[View all 106 repos →](https://github.com/orgs/Lucineer/repositories)
-[Fleet manifest →](https://github.com/Lucineer/capitaine/blob/master/docs/fleet/FLEET.md)
-
-</details>
-
+This project follows a fork-first model. You are encouraged to fork it and own your version. If you have a change that benefits the upstream base implementation, please open a pull request.
 
 ## License
 
-MIT · Superinstance & Lucineer (DiGennaro et al.)
+MIT © Superinstance & Lucineer (DiGennaro et al.)
+
+---
+
+<div align="center">
+  <a href="https://the-fleet.casey-digennaro.workers.dev">The Fleet</a> · <a href="https://cocapn.ai">Cocapn</a>
+</div>
