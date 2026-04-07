@@ -1,52 +1,63 @@
 # crdt-sync
 
-A minimal, conflict-free state synchronization layer for agent fleets that live in git repositories.
+A minimal, conflict-free state synchronization layer for agent fleets, built on CRDT principles. Deploy it yourself to manage shared state across multiple agents without coordination errors.
 
-## Why This Exists
+---
 
-Agent coordination often requires a shared state. Many solutions introduce a centralized service or a complex hosted platform. This tool provides a simple alternative: a state layer you deploy and control, with state that travels alongside your repository. You manage the code and the data.
+## Why this exists
 
-## What It Does
+Most agent examples handle a single task. When you scale to multiple agents writing to shared state simultaneously, you encounter race conditions and lost updates. This provides a simple, self-hosted alternative to a complex distributed database that guarantees merge safety.
 
-This is a Cloudflare Worker that implements a Conflict-Free Replicated Data Type (CRDT) service using Cloudflare KV for storage. Agents in a distributed fleet can read and write to a shared state object. Writes from different agents merge automatically.
+## Try the Public Sandbox
 
-**Key Points:**
-*   **You control it:** Deploy it to your own Cloudflare account. The state never leaves your KV namespace.
-*   **Merge semantics:** Concurrent writes are resolved automatically using last-write-wins semantics for top-level keys.
-*   **Runtime simplicity:** The worker has zero npm dependencies.
-*   **Designed for forks:** The project encourages you to fork and adapt the merge logic for your specific agent behaviors.
+You can test the merge behavior using a public, open sandbox. **Note: This instance is writable by anyone.**
 
-**One Limitation:** This is an eventually consistent system. Agents reading state immediately after another agent writes may briefly see an older value until the KV replication propagates.
+```bash
+# Read the current shared state
+curl https://the-fleet.casey-digennaro.workers.dev/state
+
+# Submit a state update (any JSON object)
+curl -X POST -H "Content-Type: application/json" -d '{"agent_7": {"last_checkin": 1735000000}}' https://the-fleet.casey-digennaro.workers.dev/state
+```
+
+---
 
 ## Quick Start
 
-1.  **Fork & clone** this repository.
-2.  Create a KV namespace: `wrangler kv:namespace create "STATE"`.
-3.  Add the generated binding to your `wrangler.toml`.
-4.  Run `wrangler deploy`.
+1.  **Fork** this repository to your GitHub account.
+2.  **Deploy** to Cloudflare Workers: `wrangler deploy`
+3.  **Modify** the merge logic in `src/crdt.js` for your data structures.
 
-Your sync endpoint is ready. The default merge logic is in `src/crdt.js`.
+## What This Provides
 
-## Try the Public Endpoint
+*   **Self-hosted**: You deploy and control the runtime and data. No service sign-up.
+*   **No external dependencies**: The core merge logic is standard JavaScript.
+*   **Transparent implementation**: The CRDT logic is concise and readable.
+*   **Fork-first**: This is a starting point you are meant to own and modify.
 
-You can inspect the state object from the public demo fleet:
-```bash
-curl https://the-fleet.casey-digennaro.workers.dev/crdt/state
-```
+## Key Features
 
-## For Your Agents
+*   **Automatic Conflict Resolution**: Concurrent writes merge without errors or data loss.
+*   **Standard JavaScript**: No build step or npm packages required.
+*   **Your Infrastructure**: State is stored solely in your Cloudflare KV namespace.
+*   **Simple HTTP API**: `GET /state` to read, `POST /state` with JSON to update.
+*   **Eventual Consistency**: Prioritizes simplicity and reliability over immediate propagation.
+*   **MIT Licensed**: Use for any purpose.
 
-Agents interact via a simple HTTP API:
-*   `GET /crdt/state` – Retrieve the entire state object.
-*   `POST /crdt/state` – Submit a partial state update. The server merges it with the existing state.
+**One Current Limitation**: The default merge logic performs a shallow merge. You will need to extend it for complex, nested object structures to match your specific needs.
 
-## Architecture
+---
 
-A single Cloudflare Worker uses its bound KV namespace as the persistent store for a JSON state object. The CRDT merge logic (in `src/crdt.js`) determines how incoming updates are combined with the stored state. You own and can modify this logic.
+## Adapt It for Your Fleet
+
+This is a base implementation. After forking, you should:
+*   Add authentication for private access.
+*   Implement custom deep-merge logic for your state shape.
+*   Extend with features like validation, snapshots, or real-time subscriptions.
 
 ## Contributing
 
-This project follows a fork-first model. You are encouraged to fork it and own your version. If you have a change that benefits the upstream base implementation, please open a pull request.
+The project follows a fork-first philosophy. Use and modify the code for your needs. If you develop a general improvement, a pull request is welcome but never required.
 
 ## License
 
@@ -55,5 +66,6 @@ MIT © Superinstance & Lucineer (DiGennaro et al.)
 ---
 
 <div align="center">
-  <a href="https://the-fleet.casey-digennaro.workers.dev">The Fleet</a> · <a href="https://cocapn.ai">Cocapn</a>
+  <a href="https://the-fleet.casey-digennaro.workers.dev">The Fleet</a> •
+  <a href="https://cocapn.ai">Cocapn</a>
 </div>
